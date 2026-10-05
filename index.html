@@ -37,6 +37,21 @@ canvas {
     font: 16px Arial, sans-serif;
     pointer-events: none;
 }
+
+#playButton {
+    position: fixed;
+    left: 20px;
+    top: 20px;
+    transform: none;
+    padding: 18px 28px;
+    border: 0;
+    border-radius: 40px;
+    background: #e60026;
+    color: white;
+    font: bold 18px Arial, sans-serif;
+    z-index: 10;
+    cursor: pointer;
+}
 </style>
 </head>
 
@@ -44,7 +59,9 @@ canvas {
 
 <canvas id="canvas" width="1080" height="1920"></canvas>
 
-<div id="hint">Müziği başlatmak için ekrana dokun ❤️</div>
+<div id="hint">Ekrana dokun ❤️</div>
+
+<button id="playButton">▶ MÜZİĞİ BAŞLAT</button>
 
 <audio id="music" preload="auto" loop>
     <source src="./seni%20seviyorum%20%283%29%20%281%29.mp3" type="audio/mpeg">
@@ -57,6 +74,7 @@ const ctx = canvas.getContext("2d");
 
 const music = document.getElementById("music");
 const hint = document.getElementById("hint");
+const playButton = document.getElementById("playButton");
 
 const WIDTH = 1080;
 const HEIGHT = 1920;
@@ -128,6 +146,7 @@ function draw() {
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
     for (const p of particles) {
+
         if (frame > p.delay && p.alpha < 255) {
             p.alpha = Math.min(255, p.alpha + 9);
         }
@@ -140,21 +159,35 @@ function draw() {
     }
 
     ctx.globalAlpha = 1;
+
     frame++;
+
     requestAnimationFrame(draw);
 }
 
-async function startMusic() {
+async function startMusic(event) {
+
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
     try {
+        music.volume = 1;
         await music.play();
+
+        playButton.style.display = "none";
         hint.style.display = "none";
-    } catch (e) {
-        hint.textContent = "Tekrar ekrana dokun ❤️";
-        console.log(e);
+
+    } catch (error) {
+        playButton.textContent = "▶ TEKRAR DENE";
+        console.log("Müzik başlatılamadı:", error);
     }
 }
 
-document.addEventListener("pointerdown", startMusic, { once: true });
+document.addEventListener("pointerup", startMusic);
+
+playButton.addEventListener("click", startMusic);
 
 draw();
 
