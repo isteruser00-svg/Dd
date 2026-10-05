@@ -48,6 +48,8 @@ canvas {
 
 <audio id="music" preload="auto" loop>
     <source src="./seni%20seviyorum%20%283%29%20%281%29.mp3" type="audio/mpeg">
+</audio>
+
 <script>
 
 const canvas = document.getElementById("canvas");
@@ -153,7 +155,6 @@ async function startMusic() {
 }
 
 document.addEventListener("pointerdown", startMusic, { once: true });
-document.addEventListener("touchstart", startMusic, { once: true });
 
 draw();
 
