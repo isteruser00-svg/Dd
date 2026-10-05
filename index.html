@@ -47,7 +47,7 @@ canvas {
 <div id="hint">Müziği başlatmak için ekrana dokun ❤️</div>
 
 <audio id="music" preload="auto" loop>
-    <source src="https://raw.githubusercontent.com/isteruser00-svg/Dd/main/seni%20seviyorum%20%283%29.mp3" type="audio/mpeg">
+    <source src="https://github.com/isteruser00-svg/Dd/raw/refs/heads/main/love_you%20(3).mp3" type="audio/mpeg">
 </audio>
 
 <script>
@@ -88,127 +88,74 @@ function heart(t) {
     return [x, -y];
 }
 
-
-/* DIŞ KALP */
-
 for (let i = 0; i < 95; i++) {
-
     const t = (i / 95) * 6.28;
-
     const [x, y] = heart(t);
 
     particles.push({
         x: x * 13 + WIDTH / 2,
         y: y * 13 + HEIGHT / 2,
-
         word: WORDS[Math.floor(Math.random() * WORDS.length)],
-
         color: COLORS[Math.floor(Math.random() * COLORS.length)],
-
         alpha: 0,
-
         delay: i * 1.8
     });
 }
 
-
-/* İÇ KALP */
-
 for (let i = 0; i < 65; i++) {
-
     const t = Math.random() * 6.28;
-
     const r = Math.random() * (0.78 - 0.22) + 0.22;
-
     const [x, y] = heart(t);
 
     particles.push({
         x: x * r * 13 + WIDTH / 2,
         y: y * r * 13 + HEIGHT / 2,
-
         word: WORDS[Math.floor(Math.random() * WORDS.length)],
-
         color: COLORS[Math.floor(Math.random() * COLORS.length)],
-
         alpha: 0,
-
         delay: 180 + i * 1.6
     });
 }
-
 
 ctx.font = "bold 22px Arial";
 ctx.textAlign = "center";
 ctx.textBaseline = "middle";
 
-
 let frame = 0;
 
-
 function draw() {
-
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
     for (const p of particles) {
-
         if (frame > p.delay && p.alpha < 255) {
             p.alpha = Math.min(255, p.alpha + 9);
         }
 
         if (p.alpha > 0) {
-
             ctx.globalAlpha = p.alpha / 255;
-
             ctx.fillStyle = p.color;
-
-            ctx.fillText(
-                p.word,
-                p.x,
-                p.y
-            );
+            ctx.fillText(p.word, p.x, p.y);
         }
     }
 
     ctx.globalAlpha = 1;
-
     frame++;
-
     requestAnimationFrame(draw);
 }
 
-
-/* MÜZİK */
-
 async function startMusic() {
-
     try {
-
         await music.play();
-
         hint.style.display = "none";
-
     } catch (e) {
-
         hint.textContent = "Tekrar ekrana dokun ❤️";
-
         console.log(e);
     }
 }
 
-
-document.addEventListener(
-    "pointerdown",
-    startMusic,
-    { once: true }
-);
-
-document.addEventListener(
-    "touchstart",
-    startMusic,
-    { once: true }
-);
-
+document.addEventListener("pointerdown", startMusic, { once: true });
+document.addEventListener("touchstart", startMusic, { once: true });
 
 draw();
 
