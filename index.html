@@ -2,11 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width,
-               initial-scale=1.0,
-               maximum-scale=1.0,
-               user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <title>I Love You ❤️</title>
 
@@ -18,6 +14,10 @@ html, body {
     height: 100%;
     overflow: hidden;
     background: black;
+}
+
+body {
+    touch-action: manipulation;
 }
 
 canvas {
@@ -44,14 +44,10 @@ canvas {
 
 <canvas id="canvas" width="1080" height="1920"></canvas>
 
-<div id="hint">
-    Müziği başlatmak için ekrana dokun ❤️
-</div>
+<div id="hint">Müziği başlatmak için ekrana dokun ❤️</div>
 
 <audio id="music" preload="auto" loop>
-    <source
-        src="https://raw.githubusercontent.com/isteruser00-svg/Dd/main/love_you%20%283%29.mp3"
-        type="audio/mpeg">
+    <source src="seni%20seviyorum%20%283%29.mp3" type="audio/mpeg">
 </audio>
 
 <script>
@@ -78,16 +74,10 @@ const COLORS = [
     "rgb(255,69,0)"
 ];
 
-let particles = [];
-let frame = 0;
-
-
-/* PYGAME'DEKİ KALP DENKLEMİ */
+const particles = [];
 
 function heart(t) {
-
-    const x =
-        16 * Math.sin(t) ** 3;
+    const x = 16 * Math.sin(t) ** 3;
 
     const y =
         13 * Math.cos(t)
@@ -99,119 +89,78 @@ function heart(t) {
 }
 
 
-/* PYGAME'DEKİ PARÇACIKLAR */
+/* DIŞ KALP */
 
 for (let i = 0; i < 95; i++) {
 
-    const t =
-        (i / 95) * 6.28;
+    const t = (i / 95) * 6.28;
 
     const [x, y] = heart(t);
 
     particles.push({
-
         x: x * 13 + WIDTH / 2,
         y: y * 13 + HEIGHT / 2,
 
-        word:
-            WORDS[
-                Math.floor(
-                    Math.random() * WORDS.length
-                )
-            ],
+        word: WORDS[Math.floor(Math.random() * WORDS.length)],
 
-        color:
-            COLORS[
-                Math.floor(
-                    Math.random() * COLORS.length
-                )
-            ],
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
 
         alpha: 0,
+
         delay: i * 1.8
     });
 }
 
 
+/* İÇ KALP */
+
 for (let i = 0; i < 65; i++) {
 
-    const t =
-        Math.random() * 6.28;
+    const t = Math.random() * 6.28;
 
-    const r =
-        0.22 + Math.random() * 0.56;
+    const r = Math.random() * (0.78 - 0.22) + 0.22;
 
     const [x, y] = heart(t);
 
     particles.push({
+        x: x * r * 13 + WIDTH / 2,
+        y: y * r * 13 + HEIGHT / 2,
 
-        x:
-            x * r * 13
-            + WIDTH / 2,
+        word: WORDS[Math.floor(Math.random() * WORDS.length)],
 
-        y:
-            y * r * 13
-            + HEIGHT / 2,
-
-        word:
-            WORDS[
-                Math.floor(
-                    Math.random() * WORDS.length
-                )
-            ],
-
-        color:
-            COLORS[
-                Math.floor(
-                    Math.random() * COLORS.length
-                )
-            ],
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
 
         alpha: 0,
+
         delay: 180 + i * 1.6
     });
 }
 
-
-/* PYGAME GÖRÜNÜMÜ */
 
 ctx.font = "bold 22px Arial";
 ctx.textAlign = "center";
 ctx.textBaseline = "middle";
 
 
+let frame = 0;
+
+
 function draw() {
 
     ctx.fillStyle = "black";
-
-    ctx.fillRect(
-        0,
-        0,
-        WIDTH,
-        HEIGHT
-    );
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
     for (const p of particles) {
 
-        if (
-            frame > p.delay &&
-            p.alpha < 255
-        ) {
-
-            p.alpha =
-                Math.min(
-                    255,
-                    p.alpha + 9
-                );
+        if (frame > p.delay && p.alpha < 255) {
+            p.alpha = Math.min(255, p.alpha + 9);
         }
 
         if (p.alpha > 0) {
 
-            ctx.globalAlpha =
-                p.alpha / 255;
+            ctx.globalAlpha = p.alpha / 255;
 
-            ctx.fillStyle =
-                p.color;
+            ctx.fillStyle = p.color;
 
             ctx.fillText(
                 p.word,
@@ -231,36 +180,22 @@ function draw() {
 
 /* MÜZİK */
 
-let musicStarted = false;
-
 async function startMusic() {
-
-    if (musicStarted) {
-        return;
-    }
 
     try {
 
         await music.play();
 
-        musicStarted = true;
-
         hint.style.display = "none";
 
-    } catch (error) {
+    } catch (e) {
 
-        console.log(
-            "Müzik başlatılamadı:",
-            error
-        );
+        hint.textContent = "Tekrar ekrana dokun ❤️";
 
-        hint.innerText =
-            "Tekrar ekrana dokun ❤️";
+        console.log(e);
     }
 }
 
-
-/* TELEFONA DOKUNUNCA */
 
 document.addEventListener(
     "pointerdown",
@@ -274,8 +209,6 @@ document.addEventListener(
     { once: true }
 );
 
-
-/* BAŞLAT */
 
 draw();
 
