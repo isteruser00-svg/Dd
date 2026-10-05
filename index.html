@@ -2,16 +2,12 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0,
-               maximum-scale=1.0, user-scalable=no">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>I Love You ❤️</title>
 
 <style>
 html, body {
     margin: 0;
-    padding: 0;
     width: 100%;
     height: 100%;
     overflow: hidden;
@@ -24,26 +20,20 @@ body {
 
 canvas {
     display: block;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
 }
 
 #hint {
     position: fixed;
-    left: 50%;
     bottom: 25px;
-    transform: translateX(-50%);
-
+    left: 0;
+    width: 100%;
+    text-align: center;
     color: white;
     font-family: Arial, sans-serif;
     font-size: 16px;
-
-    text-align: center;
-    white-space: nowrap;
-
-    text-shadow:
-        0 0 5px red,
-        0 0 12px red;
+    opacity: 0.8;
 }
 </style>
 </head>
@@ -52,49 +42,36 @@ canvas {
 
 <canvas id="canvas"></canvas>
 
-<div id="hint">
-Müziği başlatmak için ekrana dokun ❤️
-</div>
+<div id="hint">Müziği başlatmak için ekrana dokun ❤️</div>
 
-<audio
-    id="music"
-    src="seni seviyorum.mp3"
-    loop
-    preload="auto">
+<audio id="music" preload="auto" loop>
+    <source src="seni%20seviyorum.mp3" type="audio/mpeg">
 </audio>
 
 <script>
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-
 const music = document.getElementById("music");
 const hint = document.getElementById("hint");
 
+let W, H;
+let particles = [];
 
-/* =========================================
-   SANAL EKRAN
-   Python'daki:
-   WIDTH = 1080
-   HEIGHT = 1920
-========================================= */
+const WORDS = [
+    "i love you",
+    "I Love You",
+    "I LOVE YOU"
+];
 
-const BASE_W = 1080;
-const BASE_H = 1920;
-
-let W = 0;
-let H = 0;
-let scale = 1;
-let offsetX = 0;
-let offsetY = 0;
-
-
-/* =========================================
-   EKRANI AYARLA
-========================================= */
+const COLORS = [
+    [255, 0, 0],
+    [220, 20, 60],
+    [178, 34, 34],
+    [255, 69, 0]
+];
 
 function resize() {
-
     W = window.innerWidth;
     H = window.innerHeight;
 
@@ -106,69 +83,22 @@ function resize() {
     canvas.style.width = W + "px";
     canvas.style.height = H + "px";
 
-    ctx.setTransform(
-        dpr, 0,
-        0, dpr,
-        0, 0
-    );
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-
-    /*
-       Python'daki 1080x1920 oranını
-       telefona sığdır.
-    */
-
-    scale = Math.min(
-        W / BASE_W,
-        H / BASE_H
-    );
-
-    offsetX =
-        (W - BASE_W * scale) / 2;
-
-    offsetY =
-        (H - BASE_H * scale) / 2;
+    createHeart();
 }
 
-window.addEventListener(
-    "resize",
-    resize
-);
-
-resize();
+window.addEventListener("resize", resize);
 
 
-/* =========================================
-   YAZILAR
-========================================= */
-
-const WORDS = [
-    "i love you",
-    "I Love You",
-    "I LOVE YOU"
-];
-
-
-/* =========================================
-   PYTHON'DAKİ RENKLER
-========================================= */
-
-const COLORS = [
-    [255, 0, 0],
-    [220, 20, 60],
-    [178, 34, 34],
-    [255, 69, 0]
-];
-
-
-/* =========================================
+/* =========================
    KALP FORMÜLÜ
-========================================= */
+========================= */
 
 function heart(t) {
 
     const x =
-        16 * Math.sin(t) ** 3;
+        16 * Math.pow(Math.sin(t), 3);
 
     const y =
         13 * Math.cos(t)
@@ -176,315 +106,191 @@ function heart(t) {
         - 2 * Math.cos(3 * t)
         - Math.cos(4 * t);
 
-    return {
-        x: x,
-        y: -y
-    };
+    return [x, -y];
 }
 
 
-/* =========================================
-   RASTGELE SEÇ
-========================================= */
+/* =========================
+   KALBİ OLUŞTUR
+========================= */
 
-function randomItem(arr) {
+function createHeart() {
 
-    return arr[
-        Math.floor(
-            Math.random() * arr.length
-        )
-    ];
+    particles = [];
+
+    /*
+       Pygame'deki 13 ölçeğini
+       biraz büyüttük.
+    */
+
+    const scale = Math.min(W, H) / 42;
+
+    /* KALP KENARI */
+
+    for (let i = 0; i < 95; i++) {
+
+        const t = (i / 95) * Math.PI * 2;
+
+        const [x, y] = heart(t);
+
+        particles.push({
+
+            x: x * scale + W / 2,
+            y: y * scale + H / 2,
+
+            word:
+                WORDS[Math.floor(Math.random() * WORDS.length)],
+
+            color:
+                COLORS[Math.floor(Math.random() * COLORS.length)],
+
+            alpha: 0,
+
+            delay: i * 5
+
+        });
+    }
+
+
+    /* KALBİN İÇİ */
+
+    for (let i = 0; i < 65; i++) {
+
+        const t =
+            Math.random() * Math.PI * 2;
+
+        const r =
+            0.22 + Math.random() * 0.56;
+
+        const [x, y] = heart(t);
+
+        particles.push({
+
+            x: x * r * scale + W / 2,
+            y: y * r * scale + H / 2,
+
+            word:
+                WORDS[Math.floor(Math.random() * WORDS.length)],
+
+            color:
+                COLORS[Math.floor(Math.random() * COLORS.length)],
+
+            alpha: 0,
+
+            delay: 500 + i * 7
+
+        });
+    }
 }
 
 
-/* =========================================
-   PARÇACIKLAR
-========================================= */
+/* =========================
+   MÜZİĞİ BAŞLAT
+========================= */
 
-const particles = [];
+async function startMusic() {
 
+    try {
 
-/* =========================================
-   1. KALBİN KENARLARI
-   Python:
-   for i in range(95)
-========================================= */
+        music.currentTime = 0;
 
-for (let i = 0; i < 95; i++) {
+        await music.play();
 
-    const t =
-        (i / 95) * Math.PI * 2;
+        hint.style.display = "none";
 
-    const p = heart(t);
+    } catch (error) {
 
-    const sx =
-        p.x * 13 + BASE_W / 2;
+        console.log("Müzik başlatılamadı:", error);
 
-    const sy =
-        p.y * 13 + BASE_H / 2;
-
-    particles.push({
-
-        x: sx,
-        y: sy,
-
-        word: randomItem(WORDS),
-
-        color: randomItem(COLORS),
-
-        alpha: 0,
-
-        /*
-           Python'daki:
-           delay = i * 1.8
-        */
-
-        delay: i * 1.8
-    });
+        hint.innerHTML =
+            "Müziği başlatmak için tekrar dokun ❤️";
+    }
 }
 
 
-/* =========================================
-   2. KALBİN İÇ KISMI
-   Python:
-   for i in range(65)
-========================================= */
+/*
+   TELEFONDA İLK DOKUNUŞ
+*/
 
-for (let i = 0; i < 65; i++) {
-
-    const t =
-        Math.random() * Math.PI * 2;
-
-    const r =
-        0.22 +
-        Math.random() * (0.78 - 0.22);
-
-    const p = heart(t);
-
-    const sx =
-        p.x * r * 13 +
-        BASE_W / 2;
-
-    const sy =
-        p.y * r * 13 +
-        BASE_H / 2;
-
-    particles.push({
-
-        x: sx,
-        y: sy,
-
-        word: randomItem(WORDS),
-
-        color: randomItem(COLORS),
-
-        alpha: 0,
-
-        /*
-           Python'daki:
-           delay = 180 + i * 1.6
-        */
-
-        delay: 180 + i * 1.6
-    });
-}
+document.addEventListener(
+    "pointerdown",
+    startMusic,
+    { once: true }
+);
 
 
-/* =========================================
-   ZAMAN
-========================================= */
+/* =========================
+   ANİMASYON
+========================= */
 
 let frame = 0;
 
-
-/* =========================================
-   YAZI BOYUTU
-   Python'daki 22 px
-========================================= */
-
-function getFontSize() {
-
-    return Math.max(
-        10,
-        22 * scale
-    );
-}
-
-
-/* =========================================
-   ANİMASYON
-========================================= */
-
-function animate() {
+function draw() {
 
     frame++;
 
-
-    /*
-       SİYAH ARKA PLAN
-    */
-
     ctx.fillStyle = "black";
 
-    ctx.fillRect(
-        0,
-        0,
-        W,
-        H
-    );
+    ctx.fillRect(0, 0, W, H);
 
-
-    /*
-       Sanal 1080x1920 ekranına geç
-    */
-
-    ctx.save();
-
-    ctx.translate(
-        offsetX,
-        offsetY
-    );
-
-    ctx.scale(
-        scale,
-        scale
-    );
-
-
-    /*
-       YAZILARI ÇİZ
-    */
 
     for (const p of particles) {
-
-
-        /*
-           Python'daki:
-
-           if frame > delay:
-               alpha += 9
-        */
 
         if (
             frame > p.delay &&
             p.alpha < 255
         ) {
 
-            p.alpha = Math.min(
-                255,
-                p.alpha + 9
-            );
+            p.alpha += 9;
+
+            if (p.alpha > 255)
+                p.alpha = 255;
         }
 
 
         if (p.alpha > 0) {
 
-            const color =
-                `rgba(
-                    ${p.color[0]},
-                    ${p.color[1]},
-                    ${p.color[2]},
-                    ${p.alpha / 255}
-                )`;
+            ctx.save();
 
+            ctx.globalAlpha =
+                p.alpha / 255;
 
             ctx.font =
                 "bold 22px Arial";
 
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
+            ctx.textAlign =
+                "center";
 
+            ctx.textBaseline =
+                "middle";
 
-            /*
-               Hafif kırmızı parlama
-            */
+            ctx.fillStyle =
+                `rgb(${p.color[0]},${p.color[1]},${p.color[2]})`;
 
-            ctx.shadowColor = color;
+            ctx.shadowColor =
+                ctx.fillStyle;
+
             ctx.shadowBlur = 5;
-
-
-            ctx.fillStyle = color;
-
 
             ctx.fillText(
                 p.word,
                 p.x,
                 p.y
             );
+
+            ctx.restore();
         }
     }
 
 
-    ctx.restore();
-
-
-    /*
-       Gölgeyi kapat
-    */
-
-    ctx.shadowBlur = 0;
-
-
-    requestAnimationFrame(
-        animate
-    );
+    requestAnimationFrame(draw);
 }
 
 
-requestAnimationFrame(
-    animate
-);
+/* BAŞLAT */
 
-
-/* =========================================
-   MÜZİK
-========================================= */
-
-let musicStarted = false;
-
-
-function startMusic() {
-
-    if (musicStarted) {
-        return;
-    }
-
-    music.play()
-        .then(function() {
-
-            musicStarted = true;
-
-            hint.style.display =
-                "none";
-
-        })
-        .catch(function() {
-
-            hint.textContent =
-                "Müziği başlatmak için tekrar dokun ❤️";
-        });
-}
-
-
-/*
-   TELEFON DOKUNUŞU
-*/
-
-document.addEventListener(
-    "pointerdown",
-    startMusic
-);
-
-document.addEventListener(
-    "touchstart",
-    startMusic,
-    { passive: true }
-);
-
-document.addEventListener(
-    "click",
-    startMusic
-);
+resize();
+draw();
 
 </script>
 
