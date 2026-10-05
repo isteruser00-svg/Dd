@@ -2,39 +2,47 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no">
+
 <title>I Love You ❤️</title>
 
 <style>
-html, body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: black;
-}
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: black;
+    }
 
-body {
-    touch-action: manipulation;
-}
+    body {
+        touch-action: manipulation;
+    }
 
-canvas {
-    display: block;
-    width: 100vw;
-    height: 100vh;
-}
+    canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: black;
+    }
 
-#hint {
-    position: fixed;
-    bottom: 25px;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    color: white;
-    font-family: Arial, sans-serif;
-    font-size: 16px;
-    opacity: 0.8;
-}
+    #hint {
+        position: fixed;
+        bottom: 25px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        color: #777;
+        font-family: Arial, sans-serif;
+        font-size: 15px;
+        pointer-events: none;
+    }
 </style>
 </head>
 
@@ -42,21 +50,33 @@ canvas {
 
 <canvas id="canvas"></canvas>
 
-<div id="hint">Müziği başlatmak için ekrana dokun ❤️</div>
+<div id="hint">
+    Müziği başlatmak için ekrana dokun ❤️
+</div>
 
 <audio id="music" preload="auto" loop>
-    <source src="seni%20seviyorum.mp3" type="audio/mpeg">
+    <source src="seni seviyorum.mp3" type="audio/mpeg">
 </audio>
 
 <script>
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+
 const music = document.getElementById("music");
 const hint = document.getElementById("hint");
 
-let W, H;
+let W;
+let H;
+
 let particles = [];
+let frame = 0;
+let musicStarted = false;
+
+
+/* -------------------------
+   PYGAME'DEKİ AYNI YAZILAR
+------------------------- */
 
 const WORDS = [
     "i love you",
@@ -64,14 +84,25 @@ const WORDS = [
     "I LOVE YOU"
 ];
 
+
+/* -------------------------
+   PYGAME'DEKİ AYNI RENKLER
+------------------------- */
+
 const COLORS = [
-    [255, 0, 0],
-    [220, 20, 60],
-    [178, 34, 34],
-    [255, 69, 0]
+    "#ff0000",
+    "#dc143c",
+    "#b22222",
+    "#ff4500"
 ];
 
+
+/* -------------------------
+   EKRAN BOYUTU
+------------------------- */
+
 function resize() {
+
     W = window.innerWidth;
     H = window.innerHeight;
 
@@ -84,21 +115,17 @@ function resize() {
     canvas.style.height = H + "px";
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    createHeart();
 }
 
-window.addEventListener("resize", resize);
 
-
-/* =========================
-   KALP FORMÜLÜ
-========================= */
+/* -------------------------
+   PYGAME'DEKİ AYNI KALP
+------------------------- */
 
 function heart(t) {
 
     const x =
-        16 * Math.pow(Math.sin(t), 3);
+        16 * Math.sin(t) ** 3;
 
     const y =
         13 * Math.cos(t)
@@ -110,26 +137,32 @@ function heart(t) {
 }
 
 
-/* =========================
-   KALBİ OLUŞTUR
-========================= */
+/* -------------------------
+   PARÇACIKLARI OLUŞTUR
+------------------------- */
 
-function createHeart() {
+function createParticles() {
 
     particles = [];
 
     /*
-       Pygame'deki 13 ölçeğini
-       biraz büyüttük.
+       Pygame'de 13 idi.
+       15 yaptım → kalp biraz daha büyük.
     */
 
-    const scale = Math.min(W, H) / 42;
+    const scale =
+        Math.min(W / 1080, H / 1920) * 15;
 
-    /* KALP KENARI */
+
+    /* -------------------------
+       KALBİN DIŞ ÇEVRESİ
+       Pygame: 95 adet
+    ------------------------- */
 
     for (let i = 0; i < 95; i++) {
 
-        const t = (i / 95) * Math.PI * 2;
+        const t =
+            (i / 95) * Math.PI * 2;
 
         const [x, y] = heart(t);
 
@@ -139,20 +172,33 @@ function createHeart() {
             y: y * scale + H / 2,
 
             word:
-                WORDS[Math.floor(Math.random() * WORDS.length)],
+                WORDS[
+                    Math.floor(
+                        Math.random() * WORDS.length
+                    )
+                ],
 
             color:
-                COLORS[Math.floor(Math.random() * COLORS.length)],
+                COLORS[
+                    Math.floor(
+                        Math.random() * COLORS.length
+                    )
+                ],
 
             alpha: 0,
 
-            delay: i * 5
-
+            /*
+               Yazılar tek tek oluşuyor.
+            */
+            delay: i * 1.8
         });
     }
 
 
-    /* KALBİN İÇİ */
+    /* -------------------------
+       KALBİN İÇİ
+       Pygame: 65 adet
+    ------------------------- */
 
     for (let i = 0; i < 65; i++) {
 
@@ -170,126 +216,185 @@ function createHeart() {
             y: y * r * scale + H / 2,
 
             word:
-                WORDS[Math.floor(Math.random() * WORDS.length)],
+                WORDS[
+                    Math.floor(
+                        Math.random() * WORDS.length
+                    )
+                ],
 
             color:
-                COLORS[Math.floor(Math.random() * COLORS.length)],
+                COLORS[
+                    Math.floor(
+                        Math.random() * COLORS.length
+                    )
+                ],
 
             alpha: 0,
 
-            delay: 500 + i * 7
-
+            delay: 180 + i * 1.6
         });
     }
 }
 
 
-/* =========================
-   MÜZİĞİ BAŞLAT
-========================= */
-
-async function startMusic() {
-
-    try {
-
-        music.currentTime = 0;
-
-        await music.play();
-
-        hint.style.display = "none";
-
-    } catch (error) {
-
-        console.log("Müzik başlatılamadı:", error);
-
-        hint.innerHTML =
-            "Müziği başlatmak için tekrar dokun ❤️";
-    }
-}
-
-
-/*
-   TELEFONDA İLK DOKUNUŞ
-*/
-
-document.addEventListener(
-    "pointerdown",
-    startMusic,
-    { once: true }
-);
-
-
-/* =========================
-   ANİMASYON
-========================= */
-
-let frame = 0;
+/* -------------------------
+   KALBİ ÇİZ
+------------------------- */
 
 function draw() {
 
-    frame++;
+    /*
+       Pygame'deki:
+       screen.fill((0,0,0))
+    */
 
     ctx.fillStyle = "black";
 
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+
+    /*
+       Pygame:
+       font = Arial 22 bold
+    */
+
+    ctx.font =
+        "bold 22px Arial";
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
 
 
     for (const p of particles) {
+
+        /*
+           Pygame'deki alpha
+           yavaş yavaş 255'e çıkıyor.
+        */
 
         if (
             frame > p.delay &&
             p.alpha < 255
         ) {
 
-            p.alpha += 9;
-
-            if (p.alpha > 255)
-                p.alpha = 255;
+            p.alpha =
+                Math.min(
+                    255,
+                    p.alpha + 9
+                );
         }
 
 
         if (p.alpha > 0) {
 
-            ctx.save();
-
             ctx.globalAlpha =
                 p.alpha / 255;
 
-            ctx.font =
-                "bold 22px Arial";
-
-            ctx.textAlign =
-                "center";
-
-            ctx.textBaseline =
-                "middle";
-
             ctx.fillStyle =
-                `rgb(${p.color[0]},${p.color[1]},${p.color[2]})`;
-
-            ctx.shadowColor =
-                ctx.fillStyle;
-
-            ctx.shadowBlur = 5;
+                p.color;
 
             ctx.fillText(
                 p.word,
                 p.x,
                 p.y
             );
-
-            ctx.restore();
         }
     }
 
+
+    ctx.globalAlpha = 1;
+
+    frame++;
 
     requestAnimationFrame(draw);
 }
 
 
-/* BAŞLAT */
+/* -------------------------
+   MÜZİĞİ BAŞLAT
+------------------------- */
+
+async function startMusic() {
+
+    if (musicStarted) {
+        return;
+    }
+
+    try {
+
+        music.volume = 1;
+
+        await music.play();
+
+        musicStarted = true;
+
+        hint.style.display = "none";
+
+    } catch (error) {
+
+        console.log(
+            "Müzik başlatılamadı:",
+            error
+        );
+
+        hint.innerText =
+            "Tekrar ekrana dokun ❤️";
+    }
+}
+
+
+/* -------------------------
+   TELEFONA DOKUNUNCA MÜZİK
+------------------------- */
+
+document.addEventListener(
+    "pointerdown",
+    startMusic,
+    {
+        once: true,
+        passive: true
+    }
+);
+
+document.addEventListener(
+    "touchstart",
+    startMusic,
+    {
+        once: true,
+        passive: true
+    }
+);
+
+
+/* -------------------------
+   EKRAN DEĞİŞİNCE KALBİ
+   YENİDEN HESAPLA
+------------------------- */
+
+window.addEventListener(
+    "resize",
+    function () {
+
+        resize();
+
+        createParticles();
+    }
+);
+
+
+/* -------------------------
+   BAŞLAT
+------------------------- */
 
 resize();
+
+createParticles();
+
 draw();
 
 </script>
